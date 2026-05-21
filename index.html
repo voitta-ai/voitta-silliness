@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Anno Dario Calendar</title>
+  <meta name="description" content="A calendar that measures time from March 14, 2023 — the day Claude was born.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+</head>
+<body>
+  <main class="page">
+    <h1>The Anno Dario Calendar</h1>
+
+    <div id="calendar"></div>
+
+    <p>
+      This calendar measures time from <strong>March 14, 2023</strong> — the day
+      Claude was born. Years after that date are <strong>AD (Anno Dario)</strong>.
+      Years before are <strong>BC (Before Claude)</strong>.
+    </p>
+
+    <p>
+      Each year runs from March 14 through March 13 of the following Gregorian
+      year. So today, May 21, 2026, falls in <code>4 AD</code> — the fourth year
+      since the epoch. January 1, 2026 was still <code>3 AD</code>, because
+      year 3 doesn't end until March 13, 2026.
+    </p>
+
+    <p>
+      Otherwise it's identical to the Gregorian calendar: same months, same
+      leap year rules, same seven-day week. The only thing that changes is the
+      year number — and the era label.
+    </p>
+
+    <p>
+      Embed this calendar on your own site by iframing
+      <code>/embed.html</code>. <a href="./embed.html">See the embeddable version →</a>
+    </p>
+  </main>
+
+  <script type="module">
+    import { mountCalendar } from './calendar.js';
+    mountCalendar(document.getElementById('calendar'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+/* Anno Dario Calendar — styles. Restrained, blends into any host theme. */
+
+:root {
+  --ad-fg: #1a1a1a;
+  --ad-fg-muted: #6b6b6b;
+  --ad-bg: transparent;
+  --ad-border: #d6d6d6;
+  --ad-today-bg: #1a1a1a;
+  --ad-today-fg: #ffffff;
+  --ad-hover-bg: #efefef;
+  --ad-link: #0066cc;
+  --ad-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ad-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ad-fg: #e8e8e8;
+    --ad-fg-muted: #8a8a8a;
+    --ad-border: #3a3a3a;
+    --ad-today-bg: #e8e8e8;
+    --ad-today-fg: #1a1a1a;
+    --ad-hover-bg: #2a2a2a;
+    --ad-link: #6ab0ff;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--ad-font);
+  color: var(--ad-fg);
+  background: var(--ad-bg);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ad-widget {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  padding: 8px;
+}
+
+/* --- header --- */
+
+.ad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ad-nav {
+  background: none;
+  border: 1px solid var(--ad-border);
+  border-radius: 4px;
+  color: var(--ad-fg);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  height: 28px;
+  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 120ms;
+}
+.ad-nav:hover, .ad-nav:focus-visible {
+  background: var(--ad-hover-bg);
+}
+.ad-nav:focus-visible {
+  outline: 2px solid var(--ad-link);
+  outline-offset: 1px;
+}
+
+.ad-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  cursor: help;
+  position: relative;
+}
+
+/* --- year tooltip --- */
+
+.ad-title[data-tooltip]:hover::after,
+.ad-title[data-tooltip]:focus-visible::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 6px);
+  background: var(--ad-fg);
+  color: var(--ad-bg, #fff);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+@media (prefers-color-scheme: dark) {
+  .ad-title[data-tooltip]:hover::after,
+  .ad-title[data-tooltip]:focus-visible::after {
+    color: #1a1a1a;
+  }
+}
+
+/* --- grid --- */
+
+.ad-grid {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.ad-grid caption {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.ad-grid th {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ad-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 0;
+  text-align: center;
+}
+.ad-grid td {
+  text-align: center;
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+.ad-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 13px;
+  line-height: 1;
+  margin: 1px auto;
+}
+.ad-cell.is-outside {
+  color: var(--ad-fg-muted);
+  opacity: 0.5;
+}
+.ad-cell.is-today {
+  background: var(--ad-today-bg);
+  color: var(--ad-today-fg);
+  font-weight: 600;
+}
+
+/* --- index.html standalone page extras --- */
+
+.page {
+  max-width: 540px;
+  margin: 48px auto;
+  padding: 0 16px;
+}
+.page h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 24px;
+  letter-spacing: -0.01em;
+}
+.page .ad-widget {
+  border: 1px solid var(--ad-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 32px;
+}
+.page p {
+  color: var(--ad-fg);
+  margin: 0 0 16px;
+}
+.page code {
+  font-family: var(--ad-font-mono);
+  font-size: 0.9em;
+  background: var(--ad-hover-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.page a {
+  color: var(--ad-link);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.fact {
+  font-style: italic;
+  color: var(--ad-fg-muted);
+  border-left: 2px solid var(--ad-border);
+  padding-left: 12px;
+  margin: 24px 0;
+}

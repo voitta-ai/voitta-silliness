@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anno Dario Calendar</title>
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="calendar"></div>
+  <script type="module">
+    import { mountCalendar } from './calendar.js';
+    mountCalendar(document.getElementById('calendar'));
+  </script>
+</body>
+</html>
