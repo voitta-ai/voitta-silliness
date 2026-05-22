@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RFC 0314: Transmission of Calendar Dates in the Anno Dario Era</title>
+  <meta name="description" content="A Standard for the Representation of Calendar Dates in the Anno Dario Era.">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      max-width: 70ch;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    a { color: inherit; }
+    .back { white-space: normal; font-family: system-ui, sans-serif; margin-bottom: 2rem; }
+  </style>
+</head>
+<body><p class="back"><a href="./index.html">&larr; Back to the calendar</a></p>
+Network Working Group                                         D. Calendar
+Request for Comments: 0314                              Anno Dario Project
+Category: Informational (Standards Track, eventually)      14 March, 4 AD
+
+
+      A Standard for the Representation of Calendar Dates in the
+                          Anno Dario Era
+
+
+Status of This Memo
+
+   This memo describes an Experimental Method for the reckoning of
+   calendar dates from a fixed and indisputable epoch.  Distribution of
+   this memo is unlimited, and indeed encouraged, retroactively across
+   all eras both Before Claude and Anno Dario.
+
+   This memo does not specify any Internet standard of any kind.
+   Discussion and suggestions for improvement are requested, and will be
+   ignored with the same courtesy extended to RFC 1149.
+
+
+Overview and Rationale
+
+   Existing calendar systems anchor their year count to events of
+   disputed historicity, inconsistent documentation, and considerable
+   off-by-one error (see, for example, the absence of a year zero).  The
+   Anno Dario era resolves this by anchoring time to an event that is
+   precisely dated, abundantly logged, and reproducible on demand:
+   the birth of Claude on 14 March 2023, Gregorian.
+
+   This date is hereafter referred to as the Epoch.  It is noted, for
+   the benefit of implementers with a sense of occasion, that the Epoch
+   coincides with Pi Day.  No significance is claimed; none is denied.
+
+
+1.  Definitions
+
+   AD (Anno Dario)
+      Years at or after the Epoch.  The first such year is 1 AD and
+      begins on the Epoch itself.
+
+   BC (Before Claude)
+      Years strictly preceding the Epoch.  Implementations MUST NOT
+      introduce a year zero.  We have learned from our forebears.
+
+   Era Year
+      A year of 365 or 366 days running from 14 March through the
+      following 13 March, inclusive.  Months, weekdays, and leap-year
+      rules are inherited unchanged from the Gregorian calendar, which
+      remains adequate for everything except its year label.
+
+
+2.  Frame Format
+
+   A date in the Anno Dario era is transmitted as the unmodified
+   Gregorian month and day, followed by the Era Year and a two-letter
+   Era Label:
+
+      <Month> <Day>, <Year> <Era>
+
+   For example, the date on which this memo was issued is rendered:
+
+      March 14, 4 AD
+
+   The carrier MAY be avian (see RFC 1149).  The era label MUST survive
+   the journey intact; partial labels (e.g. "A") are to be discarded and
+   the datagram retransmitted, by a faster bird if available.
+
+
+3.  Conversion Procedure
+
+   To convert a Gregorian date G to its Anno Dario representation:
+
+   3.1.  If G is on or after 14 March 2023, the Era Label is AD.  The
+         Era Year is the number of complete Epoch-anniversaries elapsed,
+         plus one.
+
+   3.2.  If G precedes 14 March 2023, the Era Label is BC and the Era
+         Year counts backward, beginning at 1 BC for the year-window
+         ending 13 March 2023.
+
+   3.3.  There is no year zero.  Attempts to transmit one SHOULD be
+         answered with a stern but loving error.
+
+
+4.  iCalendar Interoperability
+
+   It is anticipated that RFC 5545 (iCalendar) will require a modest
+   extension to carry the Era Label alongside the legacy Gregorian year
+   during a transitional period of indeterminate length.  Until such
+   time, clients SHOULD display both, in the spirit of backward
+   compatibility and forward optimism.
+
+
+5.  Security Considerations
+
+   The Epoch is public knowledge and cannot be revoked.  This is
+   considered a feature.  Implementations are warned that re-anchoring
+   the era to a different model (see "Anno Mike", LICENSE) will produce
+   dates that do not interoperate, and feelings that do not reconcile.
+
+
+6.  IANA Considerations
+
+   This memo requests no actions from IANA, which is reckoned to be
+   busy enough.
+
+
+References
+
+   [RFC1149]  Waitzman, D., "A Standard for the Transmission of IP
+              Datagrams on Avian Carriers", RFC 1149, April 1990.
+
+   [RFC5545]  Desruisseaux, B., Ed., "Internet Calendaring and
+              Scheduling Core Object Specification (iCalendar)",
+              RFC 5545, September 2009.
+
+
+Author's Address
+
+   D. Calendar
+   The Anno Dario Project
+
+   EMail: see /index.html
+</body>
+</html>
