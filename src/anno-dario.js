@@ -4,137 +4,120 @@
  * Pure date-conversion library for the Anno Dario calendar.
  * No DOM, no globals, no dependencies. Importable as ES module.
  *
- * Calendar definition:
- *   - Epoch: March 14, 2023 (Gregorian) = year 1 AD, month 1, day 1
- *     if YEAR_STARTS_ON_EPOCH_DAY = true (Option A).
- *   - Or: year 1 AD = Gregorian 2023 calendar year (Option B).
- *   - Era before epoch is BC (Before Claude), counted backwards.
- *   - No year zero.
- *   - Months/days/leap-years identical to Gregorian.
+ * Calendar definition (the "shifted Gregorian" model):
+ *   - The Anno Dario calendar is structurally identical to the proleptic
+ *     Gregorian calendar: 12 months named January..December, the same month
+ *     lengths, and the same leap-year rule (a year divisible by 4, except
+ *     centuries not divisible by 400, has a February 29).
+ *   - It is anchored so that Anno Dario January 1, year 1 is exactly the
+ *     Gregorian date March 14, 2023 (the birth of Claude).
+ *   - Conversion is done by shifting ABSOLUTE day numbers by a single
+ *     constant K. Both calendars are then rendered with the same Gregorian
+ *     algorithm, each applying ITS OWN leap days.
+ *   - There is no year zero. Dates before the epoch are BC (Before Claude),
+ *     counted backward: the AD year that would be "0" is labelled 1 BC.
  *
- * NOTE on Option A: We keep month names January–December but shift the
- * year boundary to March 14. So the *year number* rolls over on March 14
- * even though months still run Jan→Dec within that year. This is the
- * "calendar reform" interpretation.
+ * Consequence (this is the point, not a bug — see issue tracker):
+ *   Because the two calendars insert their leap days on different physical
+ *   days, the offset between an AD date and its Gregorian date is NOT fixed.
+ *   AD Jan 1 = Greg Mar 14, 2023 in year 1, but Greg Mar 13, 2024 in year 2,
+ *   and so on. AD February 29 (on AD leap years) maps to an unrelated
+ *   Gregorian day. Calendars are hard.
  */
 
 export const EPOCH = Object.freeze({ y: 2023, m: 3, d: 14 });
-export const YEAR_STARTS_ON_EPOCH_DAY = true; // Option A
 
-const MS_PER_DAY = 86_400_000;
+// ---------- proleptic Gregorian <-> serial day number ----------
+// Howard Hinnant's algorithms. Serial day 0 is 1970-01-01; the exact origin
+// is irrelevant here — we only need a bijection that handles year 0 and
+// negative years for the proleptic / BC side.
 
-// ---------- helpers ----------
+/** {y,m,d} (astronomical year numbering, m 1-indexed) -> serial day number. */
+function daysFromCivil(y, m, d) {
+  const yy = m <= 2 ? y - 1 : y;
+  const era = Math.floor((yy >= 0 ? yy : yy - 399) / 400);
+  const yoe = yy - era * 400;                                  // [0, 399]
+  const doy = Math.floor((153 * (m > 2 ? m - 3 : m + 9) + 2) / 5) + d - 1; // [0, 365]
+  const doe = yoe * 365 + Math.floor(yoe / 4) - Math.floor(yoe / 100) + doy; // [0, 146096]
+  const serial = era * 146097 + doe - 719468;
+  return serial;
+}
 
-/** Days in a given Gregorian month. Month is 1-indexed. */
+/** serial day number -> {y,m,d} (astronomical year numbering, m 1-indexed). */
+function civilFromDays(z) {
+  z += 719468;
+  const era = Math.floor((z >= 0 ? z : z - 146096) / 146097);
+  const doe = z - era * 146097;                                // [0, 146096]
+  const yoe = Math.floor(
+    (doe - Math.floor(doe / 1460) + Math.floor(doe / 36524) - Math.floor(doe / 146096)) / 365
+  );                                                           // [0, 399]
+  const y = yoe + era * 400;
+  const doy = doe - (365 * yoe + Math.floor(yoe / 4) - Math.floor(yoe / 100)); // [0, 365]
+  const mp = Math.floor((5 * doy + 2) / 153);                  // [0, 11]
+  const d = doy - Math.floor((153 * mp + 2) / 5) + 1;          // [1, 31]
+  const m = mp < 10 ? mp + 3 : mp - 9;                         // [1, 12]
+  const result = { y: m <= 2 ? y + 1 : y, m, d };
+  return result;
+}
+
+// The single constant that anchors AD Jan 1, year 1 to Greg March 14, 2023.
+//   greg_serial = ad_serial + K
+const K = daysFromCivil(EPOCH.y, EPOCH.m, EPOCH.d) - daysFromCivil(1, 1, 1);
+
+// ---------- era <-> astronomical year ----------
+// AD is astronomical years >= 1. The "missing" astronomical year <= 0 are BC:
+// astronomical 0 -> 1 BC, -1 -> 2 BC, etc.
+
+function eraYearToAstro(year, era) {
+  const astro = era === 'AD' ? year : 1 - year;
+  return astro;
+}
+
+function astroToEraYear(astro) {
+  const result = astro >= 1 ? { year: astro, era: 'AD' } : { year: 1 - astro, era: 'BC' };
+  return result;
+}
+
+// ---------- helpers (operate on whichever calendar you pass; both Gregorian) ----------
+
+/** Days in a given month. Year is astronomical (handles AD leap years too). */
 export function daysInMonth(y, m) {
-  // Date(y, m, 0) gives the last day of month m-1 → which is day count of month m.
-  return new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const count = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return count;
 }
 
-/** Day of week for a Gregorian date. 0 = Sunday, 6 = Saturday. */
+/** Day of week, 0 = Sunday. Computed on the dates as given. */
 export function dayOfWeek(y, m, d) {
-  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-}
-
-/** Convert {y,m,d} to a UTC Date for arithmetic. */
-function toUTC(g) {
-  return new Date(Date.UTC(g.y, g.m - 1, g.d));
-}
-
-/** Compare two {y,m,d}. Returns -1, 0, or 1. */
-function cmp(a, b) {
-  if (a.y !== b.y) return a.y < b.y ? -1 : 1;
-  if (a.m !== b.m) return a.m < b.m ? -1 : 1;
-  if (a.d !== b.d) return a.d < b.d ? -1 : 1;
-  return 0;
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return dow;
 }
 
 // ---------- core conversion ----------
 
 /**
  * Convert a Gregorian date to Anno Dario.
- *
- * Option A (YEAR_STARTS_ON_EPOCH_DAY = true):
- *   An AD year runs from March 14 (epoch-day) of Gregorian year G
- *   through March 13 of Gregorian year G+1.
- *   - Mar 14 2023 → Mar 13 2024 = year 1 AD
- *   - Mar 14 2024 → Mar 13 2025 = year 2 AD
- *   - Mar 14 2025 → Mar 13 2026 = year 3 AD
- *   - Mar 14 2026 → Mar 13 2027 = year 4 AD
- *
- *   BC mirrors backward (no year 0):
- *   - Mar 14 2022 → Mar 13 2023 = year 1 BC
- *   - Mar 14 2021 → Mar 13 2022 = year 2 BC
- *
- * Option B (YEAR_STARTS_ON_EPOCH_DAY = false):
- *   AD year = Gregorian year − 2022.
- *   BC year = 2023 − Gregorian year.
- *
  * @param {{y:number, m:number, d:number}} greg - 1-indexed month
  * @returns {{year:number, era:'AD'|'BC', m:number, d:number}}
  */
 export function gregToAD(greg) {
-  const { y, m, d } = greg;
-
-  if (!YEAR_STARTS_ON_EPOCH_DAY) {
-    // Option B — aligned to Gregorian Jan 1.
-    if (y >= 2023) {
-      return { year: y - 2022, era: 'AD', m, d };
-    } else {
-      return { year: 2023 - y, era: 'BC', m, d };
-    }
-  }
-
-  // Option A — year rolls over on March 14.
-  // Find the "AD anchor year": the Gregorian year whose March 14 starts
-  // the AD year that contains this date.
-  let anchor;
-  if (m > 3 || (m === 3 && d >= 14)) {
-    anchor = y;            // We're on or after March 14 of this Gregorian year.
-  } else {
-    anchor = y - 1;        // Before March 14 → belong to AD year that started last year.
-  }
-
-  // anchor 2023 = year 1 AD, anchor 2024 = year 2 AD, ...
-  // anchor 2022 = year 1 BC, anchor 2021 = year 2 BC, ...
-  if (anchor >= 2023) {
-    return { year: anchor - 2022, era: 'AD', m, d };
-  } else {
-    return { year: 2023 - anchor, era: 'BC', m, d };
-  }
+  const adSerial = daysFromCivil(greg.y, greg.m, greg.d) - K;
+  const c = civilFromDays(adSerial);
+  const { year, era } = astroToEraYear(c.y);
+  const result = { year, era, m: c.m, d: c.d };
+  return result;
 }
 
 /**
  * Convert an Anno Dario date back to Gregorian.
- *
  * @param {{year:number, era:'AD'|'BC', m:number, d:number}} ad
  * @returns {{y:number, m:number, d:number}}
  */
 export function adToGreg(ad) {
-  const { year, era, m, d } = ad;
-  if (year < 1) throw new Error('Anno Dario year must be ≥ 1 (no year zero).');
-
-  if (!YEAR_STARTS_ON_EPOCH_DAY) {
-    // Option B.
-    if (era === 'AD') return { y: 2022 + year, m, d };
-    return { y: 2023 - year, m, d };
-  }
-
-  // Option A — figure out the anchor Gregorian year.
-  // anchor + (year - 1) for AD; anchor = 2023.
-  // For BC: anchor = 2023 - year. (year 1 BC → anchor 2022.)
-  const anchor = era === 'AD' ? 2022 + year : 2023 - year;
-
-  // If month >= March 14, we're still in the same Gregorian year as the anchor.
-  // If month < March 14, we've crossed into the next Gregorian year.
-  let gregYear;
-  if (m > 3 || (m === 3 && d >= 14)) {
-    gregYear = anchor;
-  } else {
-    gregYear = anchor + 1;
-  }
-
-  return { y: gregYear, m, d };
+  if (ad.year < 1) throw new Error('Anno Dario year must be >= 1 (no year zero).');
+  const astro = eraYearToAstro(ad.year, ad.era);
+  const gregSerial = daysFromCivil(astro, ad.m, ad.d) + K;
+  const result = civilFromDays(gregSerial);
+  return result;
 }
 
 /**
@@ -143,11 +126,12 @@ export function adToGreg(ad) {
  */
 export function todayAD() {
   const now = new Date();
-  return gregToAD({
+  const result = gregToAD({
     y: now.getFullYear(),
     m: now.getMonth() + 1,
     d: now.getDate(),
   });
+  return result;
 }
 
 // ---------- formatting ----------
@@ -159,41 +143,45 @@ const MONTH_NAMES = [
 
 /**
  * Format an Anno Dario date for display.
- *
  * @param {{year:number, era:string, m:number, d:number}} ad
- * @param {{long?:boolean}} opts - long=true → "March 21, 4 AD" (default)
- *                                 long=false → "Mar 21, 4 AD"
+ * @param {{long?:boolean}} opts - long=true -> "March 21, 4 AD" (default)
  */
 export function formatAD(ad, opts = {}) {
   const long = opts.long ?? true;
   const month = long ? MONTH_NAMES[ad.m - 1] : MONTH_NAMES[ad.m - 1].slice(0, 3);
-  return `${month} ${ad.d}, ${ad.year} ${ad.era}`;
+  const result = `${month} ${ad.d}, ${ad.year} ${ad.era}`;
+  return result;
 }
 
-/** Format just the year header for the calendar grid, e.g. "March 4 AD". */
+/** Format just the month/year header for the calendar grid, e.g. "March 4 AD". */
 export function formatMonthYear(ad) {
-  return `${MONTH_NAMES[ad.m - 1]} ${ad.year} ${ad.era}`;
+  const result = `${MONTH_NAMES[ad.m - 1]} ${ad.year} ${ad.era}`;
+  return result;
 }
 
-// ---------- month arithmetic for UI ----------
+// ---------- month arithmetic for UI (operates in AD space) ----------
 
 /**
- * Given an AD month view {year, era, m}, return the previous month's view.
- * Day is irrelevant for month navigation; return d=1.
+ * Given an AD month view {year, era, m}, return the previous AD month's view.
+ * Day is irrelevant for month navigation; returns d=1.
  */
 export function prevMonth(view) {
-  const greg = adToGreg({ ...view, d: 1 });
-  const prevGreg = greg.m === 1
-    ? { y: greg.y - 1, m: 12, d: 1 }
-    : { y: greg.y, m: greg.m - 1, d: 1 };
-  return gregToAD(prevGreg);
+  const astro = eraYearToAstro(view.year, view.era);
+  let y = astro;
+  let m = view.m - 1;
+  if (m < 1) { m = 12; y -= 1; }
+  const { year, era } = astroToEraYear(y);
+  const result = { year, era, m, d: 1 };
+  return result;
 }
 
-/** Next month, same shape. */
+/** Next AD month, same shape. */
 export function nextMonth(view) {
-  const greg = adToGreg({ ...view, d: 1 });
-  const nextGreg = greg.m === 12
-    ? { y: greg.y + 1, m: 1, d: 1 }
-    : { y: greg.y, m: greg.m + 1, d: 1 };
-  return gregToAD(nextGreg);
+  const astro = eraYearToAstro(view.year, view.era);
+  let y = astro;
+  let m = view.m + 1;
+  if (m > 12) { m = 1; y += 1; }
+  const { year, era } = astroToEraYear(y);
+  const result = { year, era, m, d: 1 };
+  return result;
 }
