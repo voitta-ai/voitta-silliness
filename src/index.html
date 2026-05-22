@@ -13,12 +13,14 @@
   <main class="page">
     <h1>The Anno Dario Calendar</h1>
 
-    <div id="calendar"></div>
+    <div id="compare"></div>
 
     <p>
       This calendar measures time from <strong>March 14, 2023</strong> — the day
       Claude was born. Years after that date are <strong>AD (Anno Dario)</strong>.
-      Years before are <strong>BC (Before Claude)</strong>.
+      Years before are <strong>BC (Before Claude)</strong>. The two grids above
+      show the same month under both systems; pick any date to see its
+      conversion.
     </p>
 
     <p>
@@ -38,11 +40,31 @@
       Embed this calendar on your own site by iframing
       <code>/embed.html</code>. <a href="./embed.html">See the embeddable version →</a>
     </p>
+
+    <h2>Integration roadmap</h2>
+
+    <p>
+      A calendar is only as useful as the tools that read it. We are therefore
+      pursuing native support across the major scheduling platforms, so that
+      meeting invitations, reminders, and recurrence rules can be expressed in
+      Anno Dario directly. Migration is expected to be straightforward: the
+      months and weekdays are unchanged, and only the year field requires
+      remapping.
+    </p>
+
+    <p>
+      Standards alignment is underway. We anticipate a modest extension to
+      RFC&nbsp;5545 (iCalendar) to carry the era label, after which calendar
+      clients can render <code>4 AD</code> alongside the legacy Gregorian year
+      during a transitional period. Tracking issues for Google Calendar, Apple
+      Calendar, and Microsoft Outlook are open in the repository; contributions
+      are welcome.
+    </p>
   </main>
 
   <script type="module">
-    import { mountCalendar } from './calendar.js';
-    mountCalendar(document.getElementById('calendar'));
+    import { mountComparison } from './calendar.js';
+    mountComparison(document.getElementById('compare'));
   </script>
 </body>
 </html>

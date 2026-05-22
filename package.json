@@ -1,0 +1,11 @@
+{
+  "name": "anno-dario-calendar",
+  "version": "1.0.0",
+  "description": "Static calendar widget for the Anno Dario calendar system.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/"
+  }
+}
