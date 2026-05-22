@@ -9,19 +9,32 @@
   <style>
     :root { color-scheme: light dark; }
     body {
-      max-width: 70ch;
-      margin: 2rem auto;
-      padding: 0 1rem;
+      width: fit-content;
+      max-width: 100%;
+      margin: 1.5rem auto;
+      padding: 0 1rem 3rem;
       font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+    .back {
+      font-family: system-ui, sans-serif;
       font-size: 14px;
-      line-height: 1.5;
-      white-space: pre-wrap;
+      margin: 0 0 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent);
     }
     a { color: inherit; }
-    .back { white-space: normal; font-family: system-ui, sans-serif; margin-bottom: 2rem; }
+    pre.rfc {
+      white-space: pre;
+      overflow-x: auto;
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.35;
+    }
   </style>
 </head>
-<body><p class="back"><a href="./index.html">&larr; Back to the calendar</a></p>
+<body>
+<p class="back"><a href="./index.html">&larr; Back to the calendar</a></p>
+<pre class="rfc">
 Network Working Group                                         D. Calendar
 Request for Comments: 0314                              Anno Dario Project
 Category: Informational (Standards Track, eventually)      14 March, 4 AD
@@ -68,19 +81,17 @@ Overview and Rationale
       introduce a year zero.  We have learned from our forebears.
 
    Era Year
-      A year of 365 or 366 days running from 14 March through the
-      following 13 March, inclusive.  Months, weekdays, and leap-year
-      rules are inherited unchanged from the Gregorian calendar, which
-      remains adequate for everything except its year label.
+      A year of 365 or 366 days, structurally identical to a Gregorian
+      year: same month names, same month lengths, same leap-year rule,
+      applied to the Era Year number.  Only the anchoring differs.
 
 
 2.  Frame Format
 
-   A date in the Anno Dario era is transmitted as the unmodified
-   Gregorian month and day, followed by the Era Year and a two-letter
-   Era Label:
+   A date in the Anno Dario era is transmitted as the Anno Dario month
+   and day, followed by the Era Year and a two-letter Era Label:
 
-      <Month> <Day>, <Year> <Era>
+      &lt;Month&gt; &lt;Day&gt;, &lt;Year&gt; &lt;Era&gt;
 
    For example, the date on which this memo was issued is rendered:
 
@@ -93,18 +104,29 @@ Overview and Rationale
 
 3.  Conversion Procedure
 
-   To convert a Gregorian date G to its Anno Dario representation:
+   Conversion is defined by shifting ABSOLUTE day numbers by a single
+   constant, K, chosen so that Anno Dario 1 January, 1 AD coincides with
+   the Gregorian Epoch, 14 March 2023.  Each calendar then renders the
+   shifted day number using its own leap-year placement.
 
-   3.1.  If G is on or after 14 March 2023, the Era Label is AD.  The
-         Era Year is the number of complete Epoch-anniversaries elapsed,
-         plus one.
+   3.1.  To convert Gregorian to Anno Dario: compute the Gregorian
+         serial day, subtract K, and render the result as an Anno Dario
+         (Gregorian-structured) date.
 
-   3.2.  If G precedes 14 March 2023, the Era Label is BC and the Era
-         Year counts backward, beginning at 1 BC for the year-window
-         ending 13 March 2023.
+   3.2.  To convert Anno Dario to Gregorian: render the Era date to a
+         serial day, add K, and render as Gregorian.
 
-   3.3.  There is no year zero.  Attempts to transmit one SHOULD be
-         answered with a stern but loving error.
+   3.3.  There is no year zero.  Dates preceding the Epoch are BC and
+         count backward beginning at 1 BC.  Attempts to transmit a year
+         zero SHOULD be answered with a stern but loving error.
+
+   3.4.  IMPLEMENTERS ARE WARNED that, because the two calendars insert
+         their leap days on different physical days, the offset between
+         an Anno Dario date and its Gregorian counterpart is NOT
+         constant.  Anno Dario 1 January is 14 March 2023 in year 1 but
+         13 March 2024 in year 2.  This is a feature.  See the issue
+         tracker for the standing question of what February means on an
+         Anno Dario leap year.
 
 
 4.  iCalendar Interoperability
@@ -146,5 +168,6 @@ Author's Address
    The Anno Dario Project
 
    EMail: see /index.html
+</pre>
 </body>
 </html>

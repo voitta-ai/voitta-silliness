@@ -47,9 +47,10 @@
       A calendar is only as useful as the tools that read it. We are therefore
       pursuing native support across the major scheduling platforms, so that
       meeting invitations, reminders, and recurrence rules can be expressed in
-      Anno Dario directly. Migration is expected to be straightforward: the
-      months and weekdays are unchanged, and only the year field requires
-      remapping.
+      Anno Dario directly. Migration is <em>not</em> expected to be
+      straightforward: weekdays are preserved, but because each calendar places
+      its own leap day, every month and day remaps — and the offset is not even
+      constant from year to year.
     </p>
 
     <p>
@@ -58,9 +59,27 @@
       clients can render <code>4 AD</code> alongside the legacy Gregorian year
       during a transitional period. The reckoning is specified in
       <a href="./rfc.html">RFC&nbsp;0314: Transmission of Calendar Dates in the
-      Anno Dario Era →</a>. Tracking issues for Google Calendar, Apple
-      Calendar, and Microsoft Outlook are open in the repository; contributions
-      are welcome.
+      Anno Dario Era →</a>.
+    </p>
+
+    <h2>Contributing</h2>
+
+    <p>
+      This is an open joke, and jokes improve with collaborators. The source
+      lives at
+      <a href="https://github.com/voitta-ai/calendar">github.com/voitta-ai/calendar</a>
+      — fork it, change the epoch, name your own era, or sharpen the date math.
+      If you arrived here from the repository: welcome, the calendar you were
+      reading about is right above. If you arrived here from the calendar: the
+      repository is where the arguing happens.
+    </p>
+
+    <p>
+      Known issues are tracked openly — including the standing question of
+      <a href="https://github.com/voitta-ai/calendar/issues/5">what February
+      means on an Anno Dario leap year</a>. The full list is in the
+      <a href="https://github.com/voitta-ai/calendar/issues">issue tracker</a>;
+      additions are welcome, resolutions less guaranteed.
     </p>
   </main>
 
