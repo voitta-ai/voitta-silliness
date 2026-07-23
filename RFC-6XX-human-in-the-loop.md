@@ -8,7 +8,7 @@ Obsoletes: your on-call rotation's peace of mind
 
 # The 6xx (Human) Status Code Class
 
-## Human-In-The-Loop Semantics for the Agentic Web
+## Human-In-The-Loop (HITL) Error Class Semantics for the Agentic Web
 
 ### Status of This Memo
 
